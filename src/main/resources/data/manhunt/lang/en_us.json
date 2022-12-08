@@ -16,6 +16,7 @@
   "manhunt.win.runners.title": "§cRunners won!",
   "manhunt.win.runners.subtitle": "§7Dragon was killed",
   "manhunt.scoreboard.target.text": "§7Target: §f%1$s§f, §7Dimension: %2$s",
+  "manhunt.scoreboard.target.textNoDimension": "§7Target: §f%1$s§f",
   "manhunt.scoreboard.world.overworld": "§2Overworld",
   "manhunt.scoreboard.world.the_nether": "§4The Nether",
   "manhunt.scoreboard.world.the_end": "§dThe End",

@@ -1,5 +1,6 @@
 package cn.noryea.manhunt.mixin;
 
+import cn.noryea.manhunt.ManhuntConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.damage.DamageSource;
@@ -39,9 +40,10 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
   public abstract boolean changeGameMode(GameMode gameMode);
 
   boolean holding;
+  ManhuntConfig config = ManhuntConfig.INSTANCE;
 
   public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile, PlayerPublicKey key) {
-    super(world, pos, yaw, profile, key);
+    super(world, pos, yaw, profile);
   }
 
   @Inject(method = "tick", at = @At("HEAD"))
@@ -55,7 +57,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         nbt.putInt("HideFlags", 1);
         nbt.put("Info", new NbtCompound());
         nbt.put("display", new NbtCompound());
-        nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"white\"}");
+        nbt.getCompound("display").putString("Name", "{\"text\": \"Tracker\",\"italic\": false,\"color\": \"white\"}"); //{"translate": "manhunt.item.tracker","italic": false,"color": "white"}
 
         ItemStack stack = new ItemStack(Items.COMPASS);
         stack.setNbt(nbt);
@@ -99,8 +101,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         scoreboard.clearPlayerTeam(this.getName().getString());
 
         if (server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"translate\":\"manhunt.win.hunters.subtitle\",\"color\":\"white\"}");
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a title {\"translate\":\"manhunt.win.hunters.title\",\"color\":\"white\"}");
+          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"text\":\"§7Runner(s) got killed\",\"color\":\"white\"}"); //title @a subtitle {"translate":"manhunt.win.hunters.subtitle","color":"white"}
+          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a title {\"text\":\"§cHunters won!\",\"color\":\"white\"}"); //
         }
       }
     }
@@ -108,18 +110,25 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
   private void showInfo(NbtCompound info) {
     String dim = info.getString("Dimension");
-    MutableText dimension = Text.literal(dim);
+    String dimension = "";
     if (!info.contains("Dimension")) {
-      dimension = Text.translatable("manhunt.scoreboard.world.unknown");
+      dimension = "§6Unknown"; //Text.translatable("manhunt.scoreboard.world.unknown")
     } else if (Objects.equals(dim, "minecraft:overworld")) {
-      dimension = Text.translatable("manhunt.scoreboard.world.overworld");
+      dimension = "§2Overworld"; //Text.translatable("manhunt.scoreboard.world.overworld")
     } else if (Objects.equals(dim, "minecraft:the_nether")) {
-      dimension = Text.translatable("manhunt.scoreboard.world.the_nether");
+      dimension = "§4The Nether"; //Text.translatable("manhunt.scoreboard.world.the_nether")
     } else if (Objects.equals(dim, "minecraft:the_end")) {
-      dimension = Text.translatable("manhunt.scoreboard.world.the_end");
+      dimension = "§dThe End"; //Text.translatable("manhunt.scoreboard.world.the_end"
     }
 
-    this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.translatable("manhunt.scoreboard.target.text", info.getString("Name"), dimension)));
+    if(config.isShowTitle()) {
+      if(config.isShowRunnerDimension()) {
+        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of(String.format("§7Target: §f%1$s§f, §7Dimension: %2$s", info.getString("Name"), dimension))));
+      } else {
+        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of(String.format("§7Target: §f%1$s§f", info.getString("Name")))));
+      }
+
+    }
   }
 
   private boolean hasTracker() {

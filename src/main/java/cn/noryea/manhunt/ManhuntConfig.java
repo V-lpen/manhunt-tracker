@@ -22,6 +22,9 @@ public class ManhuntConfig {
   private int delay = 0;
   private boolean runnersWinOnDragonDeath = true;
 
+  private boolean showTitle = true;
+  private boolean showRunnerDimension = true;
+
   //Getters
   public Formatting getHuntersColor() {
     return huntersColor;
@@ -35,7 +38,8 @@ public class ManhuntConfig {
   public boolean isRunnersWinOnDragonDeath() {
     return runnersWinOnDragonDeath;
   }
-
+  public boolean isShowTitle() { return showTitle; }
+  public boolean isShowRunnerDimension() { return showRunnerDimension; }
   //Setters
   public void setHuntersColor(Formatting color) {
     if(color == null) color = Formatting.WHITE;
@@ -55,6 +59,14 @@ public class ManhuntConfig {
     runnersWinOnDragonDeath = bool;
     save();
   }
+  public void setShowTitle(boolean bool) {
+    showTitle = bool;
+    save();
+  }
+  public void setShowRunnerDimension(boolean bool) {
+    showRunnerDimension = bool;
+    save();
+  }
 
   public void load() {
     if (!confFile.exists() || confFile.length() == 0) save();
@@ -66,9 +78,12 @@ public class ManhuntConfig {
       if((je = jo.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
       if((je = jo.get("compassDelay")) != null) delay = je.getAsInt();
       if((je = jo.get("runnersWinOnDragonDeath")) != null) runnersWinOnDragonDeath = je.getAsBoolean();
+      if((je = jo.get("showTitle")) != null) showTitle = je.getAsBoolean();
+      if((je = jo.get("showRunnerDimension")) != null) showRunnerDimension = je.getAsBoolean();
     } catch (FileNotFoundException ex) {
       LOGGER.trace("Couldn't load configuration file", ex);
     }
+    save();
   }
 
   public void save() {
@@ -81,6 +96,8 @@ public class ManhuntConfig {
       jo.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
       jo.add("compassDelay", new JsonPrimitive(delay));
       jo.add("runnersWinOnDragonDeath", new JsonPrimitive(runnersWinOnDragonDeath));
+      jo.add("showTitle", new JsonPrimitive(showTitle));
+      jo.add("showRunnerDimension", new JsonPrimitive(showRunnerDimension));
 
       PrintWriter printwriter = new PrintWriter(new FileWriter(confFile));
       printwriter.print(gson.toJson(jo));

@@ -30,7 +30,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//Server translations API
-	include(modImplementation("fr.catcore:server-translations-api:${project.server_translations_version}"))
+	// include(modImplementation("fr.catcore:server-translations-api:${project.server_translations_version}"))
 	//Carpet for fake players
 	modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}"
 

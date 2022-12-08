@@ -31,7 +31,7 @@ public class Manhunt implements ModInitializer {
       Scoreboard scoreboard = world.getServer().getScoreboard();
       if (scoreboard.getTeam("hunters") == null) {
         Team team = scoreboard.addTeam("hunters");
-        team.setDisplayName(Text.translatable("manhunt.teams.hunters.name"));
+        team.setDisplayName(Text.of("Hunters")); //Text.translatable("manhunt.teams.hunters.name")
         team.setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
         team.setShowFriendlyInvisibles(false);
       }
@@ -39,7 +39,7 @@ public class Manhunt implements ModInitializer {
 
       if (scoreboard.getTeam("runners") == null) {
         Team team = scoreboard.addTeam("runners");
-        team.setDisplayName(Text.translatable("manhunt.teams.runners.name"));
+        team.setDisplayName(Text.of("Runners")); //Text.translatable("manhunt.teams.runners.name")
         team.setCollisionRule(AbstractTeam.CollisionRule.ALWAYS);
         team.setShowFriendlyInvisibles(false);
       }

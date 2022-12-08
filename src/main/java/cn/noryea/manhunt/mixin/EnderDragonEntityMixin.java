@@ -17,8 +17,8 @@ public class EnderDragonEntityMixin {
     EnderDragonEntity dragon = ((EnderDragonEntity)(Object) this);
     MinecraftServer server = dragon.getServer();
     if(ManhuntConfig.INSTANCE.isRunnersWinOnDragonDeath() && !server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.ticksSinceDeath == 1) {
-      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"translate\":\"manhunt.win.runners.subtitle\",\"color\":\"white\"}");
-      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a title {\"translate\":\"manhunt.win.runners.title\",\"color\":\"white\"}");
+      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"text\":\"§7Dragon was killed\",\"color\":\"white\"}"); //title @a subtitle {"translate":"manhunt.win.runners.subtitle","color":"white"}
+      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a title {\"text\":\"§cRunners won!\",\"color\":\"white\"}"); //title @a title {"translate":"manhunt.win.runners.title","color":"white"}
     }
   }
 }
