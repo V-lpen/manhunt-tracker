@@ -57,7 +57,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         nbt.putInt("HideFlags", 1);
         nbt.put("Info", new NbtCompound());
         nbt.put("display", new NbtCompound());
-        nbt.getCompound("display").putString("Name", "{\"text\": \"Tracker\",\"italic\": false,\"color\": \"white\"}"); //{"translate": "manhunt.item.tracker","italic": false,"color": "white"}
+        nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"white\"}");
 
         ItemStack stack = new ItemStack(Items.COMPASS);
         stack.setNbt(nbt);
@@ -101,8 +101,8 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         scoreboard.clearPlayerTeam(this.getName().getString());
 
         if (server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"text\":\"§7Runner(s) got killed\",\"color\":\"white\"}"); //title @a subtitle {"translate":"manhunt.win.hunters.subtitle","color":"white"}
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a title {\"text\":\"§cHunters won!\",\"color\":\"white\"}"); //
+          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"translate\":\"manhunt.win.hunters.subtitle\",\"color\":\"white\"}");
+          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a title {\"translate\":\"manhunt.win.hunters.title\",\"color\":\"white\"}"); //
         }
       }
     }
@@ -112,20 +112,20 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     String dim = info.getString("Dimension");
     String dimension = "";
     if (!info.contains("Dimension")) {
-      dimension = "§6Unknown"; //Text.translatable("manhunt.scoreboard.world.unknown")
+      dimension = "manhunt.scoreboard.world.unknown";
     } else if (Objects.equals(dim, "minecraft:overworld")) {
-      dimension = "§2Overworld"; //Text.translatable("manhunt.scoreboard.world.overworld")
+      dimension = "manhunt.scoreboard.world.overworld";
     } else if (Objects.equals(dim, "minecraft:the_nether")) {
-      dimension = "§4The Nether"; //Text.translatable("manhunt.scoreboard.world.the_nether")
+      dimension = "manhunt.scoreboard.world.the_nether";
     } else if (Objects.equals(dim, "minecraft:the_end")) {
-      dimension = "§dThe End"; //Text.translatable("manhunt.scoreboard.world.the_end"
+      dimension = "manhunt.scoreboard.world.the_end";
     }
 
     if(config.isShowTitle()) {
       if(config.isShowRunnerDimension()) {
-        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of(String.format("§7Target: §f%1$s§f, §7Dimension: %2$s", info.getString("Name"), dimension))));
+        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Text.translatable(dimension))));
       } else {
-        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of(String.format("§7Target: §f%1$s§f", info.getString("Name")))));
+        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));
       }
 
     }

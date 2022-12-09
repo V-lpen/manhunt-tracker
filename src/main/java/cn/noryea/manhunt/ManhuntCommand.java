@@ -63,21 +63,21 @@ public class ManhuntCommand {
     Scoreboard scoreboard = source.getServer().getScoreboard();
 
     scoreboard.addPlayerToTeam(source.getPlayer().getName().getString(), team);
-    source.sendFeedback(Text.of(String.format("Added %1$s to team %2$s", source.getPlayer().getName().getString(), team.getFormattedName().getString())), true); //Text.translatable("commands.team.join.success.single", source.getPlayer().getName(), team.getFormattedName())
+    source.sendFeedback(Text.translatable("commands.team.join.success.single", source.getPlayer().getName(), team.getFormattedName()), true);
 
     return 1;
   }
 
   private static int executeCompassDelay(ServerCommandSource source, Integer delay) {
     config.setDelay(delay);
-    source.sendFeedback(Text.of(String.format("§7Set delay to: §f%d §7seconds", delay)), true); //Text.translatable("manhunt.commands.delay", delay)
+    source.sendFeedback(Text.translatable("manhunt.commands.delay", delay), true);
 
     return 1;
   }
 
   private static int setRunnersWinOnDragonDeath(ServerCommandSource source, boolean bool) {
     config.setRunnersWinOnDragonDeath(bool);
-    source.sendFeedback(Text.of(String.format("§7Set runnersWinOnDragonDeath to: §f%s", bool)), true); //Text.translatable("manhunt.commands.runnerswinset", bool)
+    source.sendFeedback(Text.translatable("manhunt.commands.runnerswinset", bool), true);
 
     return 1;
   }
@@ -92,7 +92,7 @@ public class ManhuntCommand {
       player.getHungerManager().setSaturationLevel(8.5F);
 
     }
-    source.sendFeedback(Text.of(String.format("§7Cured §f%d §7targets", targets.size())), true); //Text.translatable("manhunt.commands.cured", targets.size())
+    source.sendFeedback(Text.translatable("manhunt.commands.cured", targets.size()), true);
     return targets.size();
   }
 
@@ -117,7 +117,7 @@ public class ManhuntCommand {
       }
     }
 
-    source.sendFeedback(Text.of(String.format("§7Hunters will be frozen for §f%d§7 seconds", time)), true); //Text.translatable("manhunt.commands.freeze", time)
+    source.sendFeedback(Text.translatable("manhunt.commands.freeze", time), true);
 
     return 1;
   }
@@ -126,30 +126,30 @@ public class ManhuntCommand {
     if(team.getName().equals("hunters")) { config.setHuntersColor(color); }
     else if(team.getName().equals("runners")) { config.setRunnersColor(color); }
     else {
-      source.sendFeedback(Text.of(String.format("§cYou can only change colors of §f%1$s §cand §f%2$s §cteams", "Hunters", "Runners")), true);
+      source.sendFeedback(Text.translatable("manhunt.commands.teamcolor.badteam", Text.translatable("manhunt.teams.hunters.name"), Text.translatable("manhunt.teams.runners.name")), true);
       return -1;
-    } //Text.translatable("manhunt.commands.teamColor.badTeam", Text.translatable("manhunt.teams.hunters.name"), Text.translatable("manhunt.teams.runners.name")
+    }
 
     team.setColor(color);
-    source.sendFeedback(Text.of(String.format("§7Changed color of §f%1$s §7team to §f%2$s", Text.of(team.getName()), color.getName())), true);
+    source.sendFeedback(Text.translatable("manhunt.commands.teamcolor.success", Text.translatable("manhunt.teams." + team.getName() + ".name"), color.getName()), true);
     return 1;
-  } //Text.translatable("manhunt.commands.teamColor.success", Text.translatable("manhunt.teams." + team.getName() + ".name"), color.getName())
+  }
 
   private static int executeShowActionBar(ServerCommandSource source, boolean bool) {
     config.setShowTitle(bool);
-    source.sendFeedback(Text.of(String.format("§7Set showActionBar to: §f%s", bool)), true);
+    source.sendFeedback(Text.translatable("manhunt.commands.showactionbar", bool), true);
     return 1;
   }
 
   private static int executeShowRunnerDimension(ServerCommandSource source, boolean bool) {
     config.setShowRunnerDimension(bool);
-    source.sendFeedback(Text.of(String.format("§7Set showRunnerDimension to: §f%s", bool)), true);
+    source.sendFeedback(Text.translatable("manhunt.commands.showrunnerdimension", bool), true);
     return 1;
   }
 
   private static int executeReload(ServerCommandSource source) {
     config.load();
-    source.sendFeedback(Text.of("§7Succesfully reloaded configuration file"), true); //Text.translatable("manhunt.commands.reload")
+    source.sendFeedback(Text.translatable("manhunt.commands.reload"), true);
     return 1;
   }
 }

@@ -87,7 +87,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
       int previous = -1;
       NbtCompound info = stackNbt.getCompound("Info");
 
-      if (Manhunt.allRunners.isEmpty()) player.sendMessage(Text.translatable("§cThere is no runners")); //Text.translatable("manhunt.item.tracker.noRunners")
+      if (Manhunt.allRunners.isEmpty()) player.sendMessage(Text.translatable("manhunt.item.tracker.norunners"));
       else {
         for (int i = 0; i < Manhunt.allRunners.size(); i++) {
           ServerPlayerEntity x = Manhunt.allRunners.get(i);
@@ -106,7 +106,7 @@ public abstract class ServerPlayerInteractionManagerMixin {
 
         if (previous != next) {
           updateCompass(player, stackNbt, Manhunt.allRunners.get(next));
-          player.sendMessage(Text.of(String.format("§7Compass is now pointing to §f%s", Manhunt.allRunners.get(next).getName().getString()))); //
+          player.sendMessage(Text.translatable("manhunt.item.tracker.switchrunner", Manhunt.allRunners.get(next).getName().getString()));
         }
       }
     }
