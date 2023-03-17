@@ -31,10 +31,10 @@ dependencies {
 
 	//Server translations API
 	// include(modImplementation("fr.catcore:server-translations-api:${project.server_translations_version}"))
-	// jitpack version for now
-	include(modImplementation("com.github.Ivan-Khar:Server-Translations:e7f2a3f743"))
+	// jitpack version
+	include(modImplementation("com.github.NucleoidMC:Server-Translations:${project.server_translations_version}"))
 	//Carpet for fake players
-	modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}"
+	// modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}"
 
 	//optimizations
 	modImplementation "maven.modrinth:lazydfu:0.1.3"
