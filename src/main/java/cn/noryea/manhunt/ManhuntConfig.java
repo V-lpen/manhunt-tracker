@@ -25,6 +25,8 @@ public class ManhuntConfig {
   private boolean showTitle = true;
   private boolean showRunnerDimension = true;
 
+  private boolean automaticCompassUpdate = false;
+  private int automaticCompassUpdateDelay = 0;
   //Getters
   public Formatting getHuntersColor() {
     return huntersColor;
@@ -40,6 +42,9 @@ public class ManhuntConfig {
   }
   public boolean isShowTitle() { return showTitle; }
   public boolean isShowRunnerDimension() { return showRunnerDimension; }
+  public boolean isAutomaticCompassUpdate() { return automaticCompassUpdate; }
+  public int getAutomaticCompassDelay() { return automaticCompassUpdateDelay; }
+
   //Setters
   public void setHuntersColor(Formatting color) {
     if(color == null) color = Formatting.WHITE;
@@ -67,6 +72,14 @@ public class ManhuntConfig {
     showRunnerDimension = bool;
     save();
   }
+  public void setAutomaticCompassUpdate(boolean bool) {
+    automaticCompassUpdate = bool;
+    save();
+  }
+  public void setAutomaticCompassDelay(int timeInSeconds) {
+    automaticCompassUpdateDelay = timeInSeconds;
+    save();
+  }
 
   public void load() {
     if (!confFile.exists() || confFile.length() == 0) save();
@@ -80,6 +93,9 @@ public class ManhuntConfig {
       if((je = jo.get("runnersWinOnDragonDeath")) != null) runnersWinOnDragonDeath = je.getAsBoolean();
       if((je = jo.get("showTitle")) != null) showTitle = je.getAsBoolean();
       if((je = jo.get("showRunnerDimension")) != null) showRunnerDimension = je.getAsBoolean();
+
+      if((je = jo.get("automaticCompassUpdate")) != null) automaticCompassUpdate = je.getAsBoolean();
+      if((je = jo.get("automaticCompassUpdateDelay")) != null) automaticCompassUpdateDelay = je.getAsInt();
     } catch (FileNotFoundException ex) {
       LOGGER.trace("Couldn't load configuration file", ex);
     }
@@ -98,6 +114,8 @@ public class ManhuntConfig {
       jo.add("runnersWinOnDragonDeath", new JsonPrimitive(runnersWinOnDragonDeath));
       jo.add("showTitle", new JsonPrimitive(showTitle));
       jo.add("showRunnerDimension", new JsonPrimitive(showRunnerDimension));
+      jo.add("automaticCompassUpdate", new JsonPrimitive(automaticCompassUpdate));
+      jo.add("automaticCompassUpdateDelay", new JsonPrimitive(automaticCompassUpdateDelay));
 
       PrintWriter printwriter = new PrintWriter(new FileWriter(confFile));
       printwriter.print(gson.toJson(jo));

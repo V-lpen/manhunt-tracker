@@ -1,5 +1,6 @@
 package cn.noryea.manhunt.mixin;
 
+import cn.noryea.manhunt.Manhunt;
 import cn.noryea.manhunt.ManhuntConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.enchantment.Enchantments;
@@ -8,6 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.encryption.PlayerPublicKey;
 import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
 import net.minecraft.scoreboard.Scoreboard;
@@ -41,7 +43,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
   boolean holding;
   ManhuntConfig config = ManhuntConfig.INSTANCE;
-
+  private long lastDelay = System.currentTimeMillis();
   public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile, PlayerPublicKey key) {
     super(world, pos, yaw, profile);
   }
@@ -64,6 +66,18 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
         stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
 
         this.giveItemStack(stack);
+      } else if (config.isAutomaticCompassUpdate() && (config.getAutomaticCompassDelay() == 0 || System.currentTimeMillis() - lastDelay > ((long) config.getAutomaticCompassDelay() * 1000))) {
+        for (ItemStack item : this.getInventory().main) {
+          if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
+            ServerPlayerEntity trackedPlayer = world.getServer().getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
+            if (trackedPlayer != null) {
+              updateCompass((ServerPlayerEntity) (Object) this, item.getNbt(), trackedPlayer);
+              this.getItemCooldownManager().set(item.getItem(), config.getDelay() * 20);
+            }
+          }
+        }
+
+        lastDelay = System.currentTimeMillis();
       }
 
 
@@ -88,6 +102,31 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
       }
 
     }
+  }
+
+  private void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
+    nbt.remove("LodestonePos");
+    nbt.remove("LodestoneDimension");
+
+    nbt.put("Info", new NbtCompound());
+    if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
+      NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
+      NbtList positions = playerTag.getList("Positions", 10);
+      int i;
+      for (i = 0; i < positions.size(); ++i) {
+        NbtCompound compound = positions.getCompound(i);
+        if (Objects.equals(compound.getString("LodestoneDimension"), player.writeNbt(new NbtCompound()).getString("Dimension"))) {
+          nbt.copyFrom(compound);
+          break;
+        }
+      }
+
+      NbtCompound info = nbt.getCompound("Info");
+      info.putLong("LastUpdateTime", player.getWorld().getTime());
+      info.putString("Name", trackedPlayer.getEntityName());
+      info.putString("Dimension", playerTag.getString("Dimension"));
+    }
+
   }
 
   @Inject(method = "onDeath", at = @At("HEAD"))

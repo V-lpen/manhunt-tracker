@@ -41,6 +41,12 @@ public class ManhuntCommand {
         .then(CommandManager.literal("compassDelay").requires((src) -> src.hasPermissionLevel(2))
             .then(CommandManager.argument("seconds", IntegerArgumentType.integer(0, 120))
                 .executes((ctx) -> executeCompassDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
+        .then(CommandManager.literal("automaticCompassUpdate").requires((src) -> src.hasPermissionLevel(2))
+            .then(CommandManager.argument("boolean", BoolArgumentType.bool())
+                .executes((ctx) -> executeSetAutomaticCompassUpdate(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+        .then(CommandManager.literal("automaticCompassUpdateDelay").requires((src) -> src.hasPermissionLevel(2))
+            .then(CommandManager.argument("seconds", IntegerArgumentType.integer(1, 120))
+                .executes((ctx) -> executeSetAutomaticCompassUpdateDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
         .then(CommandManager.literal("runnersWinOnDragonDeath").requires((src) -> src.hasPermissionLevel(2))
             .then(CommandManager.argument("boolean", BoolArgumentType.bool())
                 .executes((ctx) -> setRunnersWinOnDragonDeath(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
@@ -138,6 +144,18 @@ public class ManhuntCommand {
   private static int executeShowActionBar(ServerCommandSource source, boolean bool) {
     config.setShowTitle(bool);
     source.sendFeedback(Text.translatable("manhunt.commands.showactionbar", bool), true);
+    return 1;
+  }
+
+  private static int executeSetAutomaticCompassUpdate(ServerCommandSource source, boolean bool) {
+    config.setAutomaticCompassUpdate(bool);
+    source.sendFeedback(Text.translatable("manhunt.commands.setautomaticcompassupdate", bool), true);
+    return 1;
+  }
+
+  private static int executeSetAutomaticCompassUpdateDelay(ServerCommandSource source, int time) {
+    config.setAutomaticCompassDelay(time);
+    source.sendFeedback(Text.translatable("manhunt.commands.setautomaticcompassdelay", time), true);
     return 1;
   }
 
