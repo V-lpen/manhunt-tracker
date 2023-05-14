@@ -3,7 +3,7 @@
   "manhunt.item.tracker.switchrunner": "§7目标切换至§f%s",
   "manhunt.item.tracker.norunners": "§c目标队伍成员为空",
   "manhunt.commands.delay": "§7Set delay to: §f%d §7seconds",
-  "manhunt.commands.setautomaticcompassupdate": "§7Set automaticcompassupdate to: §f%s",
+  "manhunt.commands.setautomaticcompassupdate": "§7Set automaticCompassUpdate to: §f%s",
   "manhunt.commands.setautomaticcompassdelay": "§7Set delay to: §f%d §7seconds",
   "manhunt.commands.runnerswinset": "§7Set runnersWinOnDragonDeath to: §f%s",
   "manhunt.commands.cured": "§7已治愈 §f%d §7名玩家",

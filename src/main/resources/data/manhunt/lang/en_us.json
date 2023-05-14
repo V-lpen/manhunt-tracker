@@ -3,7 +3,7 @@
   "manhunt.item.tracker.switchrunner": "§7Compass is now pointing at §f%s",
   "manhunt.item.tracker.norunners": "§cThere is no runners",
   "manhunt.commands.delay": "§7Set delay to: §f%d §7seconds",
-  "manhunt.commands.setautomaticcompassupdate": "§7Set automaticcompassupdate to: §f%s",
+  "manhunt.commands.setautomaticcompassupdate": "§7Set automaticCompassUpdate to: §f%s",
   "manhunt.commands.setautomaticcompassdelay": "§7Set delay to: §f%d §7seconds",
   "manhunt.commands.runnerswinset": "§7Set runnersWinOnDragonDeath to: §f%s",
   "manhunt.commands.cured": "§7Cured §f%d §7targets",
