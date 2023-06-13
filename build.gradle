@@ -34,7 +34,7 @@ dependencies {
 	// jitpack version
 	include(modImplementation("com.github.NucleoidMC:Server-Translations:${project.server_translations_version}"))
 	//Carpet for fake players
-	// modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}"
+	//modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}"
 
 	//optimizations
 	modImplementation "maven.modrinth:lazydfu:0.1.3"

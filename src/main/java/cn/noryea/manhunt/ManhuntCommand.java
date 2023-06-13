@@ -69,21 +69,21 @@ public class ManhuntCommand {
     Scoreboard scoreboard = source.getServer().getScoreboard();
 
     scoreboard.addPlayerToTeam(source.getPlayer().getName().getString(), team);
-    source.sendFeedback(Text.translatable("commands.team.join.success.single", source.getPlayer().getName(), team.getFormattedName()), true);
+    source.sendFeedback(() -> Text.translatable("commands.team.join.success.single", source.getPlayer().getName(), team.getFormattedName()), true);
 
     return 1;
   }
 
   private static int executeCompassDelay(ServerCommandSource source, Integer delay) {
     config.setDelay(delay);
-    source.sendFeedback(Text.translatable("manhunt.commands.delay", delay), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.delay", delay), true);
 
     return 1;
   }
 
   private static int setRunnersWinOnDragonDeath(ServerCommandSource source, boolean bool) {
     config.setRunnersWinOnDragonDeath(bool);
-    source.sendFeedback(Text.translatable("manhunt.commands.runnerswinset", bool), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.runnerswinset", bool), true);
 
     return 1;
   }
@@ -98,7 +98,7 @@ public class ManhuntCommand {
       player.getHungerManager().setSaturationLevel(8.5F);
 
     }
-    source.sendFeedback(Text.translatable("manhunt.commands.cured", targets.size()), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.cured", targets.size()), true);
     return targets.size();
   }
 
@@ -123,7 +123,7 @@ public class ManhuntCommand {
       }
     }
 
-    source.sendFeedback(Text.translatable("manhunt.commands.freeze", time), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.freeze", time), true);
 
     return 1;
   }
@@ -132,42 +132,42 @@ public class ManhuntCommand {
     if(team.getName().equals("hunters")) { config.setHuntersColor(color); }
     else if(team.getName().equals("runners")) { config.setRunnersColor(color); }
     else {
-      source.sendFeedback(Text.translatable("manhunt.commands.teamcolor.badteam", Text.translatable("manhunt.teams.hunters.name"), Text.translatable("manhunt.teams.runners.name")), true);
+      source.sendFeedback(() -> Text.translatable("manhunt.commands.teamcolor.badteam", Text.translatable("manhunt.teams.hunters.name"), Text.translatable("manhunt.teams.runners.name")), true);
       return -1;
     }
 
     team.setColor(color);
-    source.sendFeedback(Text.translatable("manhunt.commands.teamcolor.success", Text.translatable("manhunt.teams." + team.getName() + ".name"), color.getName()), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.teamcolor.success", Text.translatable("manhunt.teams." + team.getName() + ".name"), color.getName()), true);
     return 1;
   }
 
   private static int executeShowActionBar(ServerCommandSource source, boolean bool) {
     config.setShowTitle(bool);
-    source.sendFeedback(Text.translatable("manhunt.commands.showactionbar", bool), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.showactionbar", bool), true);
     return 1;
   }
 
   private static int executeSetAutomaticCompassUpdate(ServerCommandSource source, boolean bool) {
     config.setAutomaticCompassUpdate(bool);
-    source.sendFeedback(Text.translatable("manhunt.commands.setautomaticcompassupdate", bool), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.setautomaticcompassupdate", bool), true);
     return 1;
   }
 
   private static int executeSetAutomaticCompassUpdateDelay(ServerCommandSource source, int time) {
     config.setAutomaticCompassDelay(time);
-    source.sendFeedback(Text.translatable("manhunt.commands.setautomaticcompassdelay", time), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.setautomaticcompassdelay", time), true);
     return 1;
   }
 
   private static int executeShowRunnerDimension(ServerCommandSource source, boolean bool) {
     config.setShowRunnerDimension(bool);
-    source.sendFeedback(Text.translatable("manhunt.commands.showrunnerdimension", bool), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.showrunnerdimension", bool), true);
     return 1;
   }
 
   private static int executeReload(ServerCommandSource source) {
     config.load();
-    source.sendFeedback(Text.translatable("manhunt.commands.reload"), true);
+    source.sendFeedback(() -> Text.translatable("manhunt.commands.reload"), true);
     return 1;
   }
 }

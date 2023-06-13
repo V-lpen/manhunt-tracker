@@ -27,7 +27,7 @@ public abstract class PlayerEntityMixin extends LivingEntity {
   @Inject(method = "tick", at = @At("HEAD"))
   public void tick(CallbackInfo ci) {
 
-    DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, world.getRegistryKey());
+    DataResult<NbtElement> var10000 = World.CODEC.encodeStart(NbtOps.INSTANCE, getWorld().getRegistryKey());
     Logger logger = LoggerFactory.getLogger("Manhunt");
     Objects.requireNonNull(logger);
     var10000.resultOrPartial(logger::error).ifPresent((dimension) -> {

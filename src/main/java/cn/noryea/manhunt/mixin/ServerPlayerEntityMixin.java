@@ -17,6 +17,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
@@ -43,6 +44,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
   public abstract boolean changeGameMode(GameMode gameMode);
 
   @Shadow @Final public ServerPlayerInteractionManager interactionManager;
+
   boolean holding;
   ManhuntConfig config = ManhuntConfig.INSTANCE;
   private long lastDelay = System.currentTimeMillis();
@@ -71,7 +73,7 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
       } else if (config.isAutomaticCompassUpdate() && (config.getAutomaticCompassDelay() == 0 || System.currentTimeMillis() - lastDelay > ((long) config.getAutomaticCompassDelay() * 1000))) {
         for (ItemStack item : this.getInventory().main) {
           if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
-            ServerPlayerEntity trackedPlayer = world.getServer().getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
+            ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
             if (trackedPlayer != null) {
               updateCompass((ServerPlayerEntity) (Object) this, item.getNbt(), trackedPlayer);
               this.getItemCooldownManager().set(item.getItem(), config.getAutomaticCompassDelay() * 20);
