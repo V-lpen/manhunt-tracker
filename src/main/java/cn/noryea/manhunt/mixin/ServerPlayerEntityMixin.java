@@ -3,25 +3,25 @@ package cn.noryea.manhunt.mixin;
 import cn.noryea.manhunt.Manhunt;
 import cn.noryea.manhunt.ManhuntConfig;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.network.encryption.PlayerPublicKey;
-import net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket;
-import net.minecraft.scoreboard.Scoreboard;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.text.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.ProfilePublicKey;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.Scoreboard;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,52 +31,52 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
 
-@Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin extends PlayerEntity {
+@Mixin(ServerPlayer.class)
+public abstract class ServerPlayerEntityMixin extends Player {
 
   @Final
   @Shadow
   public MinecraftServer server;
   @Shadow
-  public ServerPlayNetworkHandler networkHandler;
+  public ServerGamePacketListenerImpl networkHandler;
 
   @Shadow
-  public abstract boolean changeGameMode(GameMode gameMode);
+  public abstract boolean changeGameMode(GameType gameMode);
 
-  @Shadow @Final public ServerPlayerInteractionManager interactionManager;
+  @Shadow @Final public ServerPlayerGameMode interactionManager;
 
   boolean holding;
   ManhuntConfig config = ManhuntConfig.INSTANCE;
   private long lastDelay = System.currentTimeMillis();
-  public ServerPlayerEntityMixin(World world, BlockPos pos, float yaw, GameProfile profile, PlayerPublicKey key) {
+  public ServerPlayerEntityMixin(Level world, BlockPos pos, float yaw, GameProfile profile, ProfilePublicKey key) {
     super(world, pos, yaw, profile);
   }
 
   @Inject(method = "tick", at = @At("HEAD"))
   public void tick(CallbackInfo ci) {
-    if (this.isTeamPlayer(server.getScoreboard().getTeam("hunters")) && this.isAlive()) {
+    if (this.isAlliedTo(server.getScoreboard().getPlayerTeam("hunters")) && this.isAlive()) {
       if (!hasTracker()) {
-        NbtCompound nbt = new NbtCompound();
+        CompoundTag nbt = new CompoundTag();
         nbt.putBoolean("Tracker", true);
         nbt.putBoolean("LodestoneTracked", false);
         nbt.putString("LodestoneDimension", "minecraft:overworld");
         nbt.putInt("HideFlags", 1);
-        nbt.put("Info", new NbtCompound());
-        nbt.put("display", new NbtCompound());
+        nbt.put("Info", new CompoundTag());
+        nbt.put("display", new CompoundTag());
         nbt.getCompound("display").putString("Name", "{\"translate\": \"manhunt.item.tracker\",\"italic\": false,\"color\": \"white\"}");
 
         ItemStack stack = new ItemStack(Items.COMPASS);
-        stack.setNbt(nbt);
-        stack.addEnchantment(Enchantments.VANISHING_CURSE, 1);
+        stack.setTag(nbt);
+        stack.enchant(Enchantments.VANISHING_CURSE, 1);
 
-        this.giveItemStack(stack);
+        this.addItem(stack);
       } else if (config.isAutomaticCompassUpdate() && (config.getAutomaticCompassDelay() == 0 || System.currentTimeMillis() - lastDelay > ((long) config.getAutomaticCompassDelay() * 1000))) {
-        for (ItemStack item : this.getInventory().main) {
-          if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
-            ServerPlayerEntity trackedPlayer = server.getPlayerManager().getPlayer(item.getNbt().getCompound("Info").getString("Name"));
+        for (ItemStack item : this.getInventory().items) {
+          if (item.getItem().equals(Items.COMPASS) && item.getTag() != null && item.getTag().getBoolean("Tracker")) {
+            ServerPlayer trackedPlayer = server.getPlayerList().getPlayerByName(item.getTag().getCompound("Info").getString("Name"));
             if (trackedPlayer != null) {
-              updateCompass((ServerPlayerEntity) (Object) this, item.getNbt(), trackedPlayer);
-              this.getItemCooldownManager().set(item.getItem(), config.getAutomaticCompassDelay() * 20);
+              updateCompass((ServerPlayer) (Object) this, item.getTag(), trackedPlayer);
+              this.getCooldowns().addCooldown(item.getItem(), config.getAutomaticCompassDelay() * 20);
             }
           }
         }
@@ -86,20 +86,20 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
       if (holdingTracker()) {
         holding = true;
-        if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker")) {
-          NbtCompound info = this.getMainHandStack().getNbt().getCompound("Info");
-          if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+        if (this.getMainHandItem().getTag() != null && this.getMainHandItem().getTag().getBoolean("Tracker")) {
+          CompoundTag info = this.getMainHandItem().getTag().getCompound("Info");
+          if (server.getPlayerList().getPlayerByName(info.getString("Name")) != null) {
             showInfo(info);
           }
-        } else if (this.getOffHandStack().getNbt() != null) {
-          NbtCompound info = this.getOffHandStack().getNbt().getCompound("Info");
-          if (server.getPlayerManager().getPlayer(info.getString("Name")) != null) {
+        } else if (this.getOffhandItem().getTag() != null) {
+          CompoundTag info = this.getOffhandItem().getTag().getCompound("Info");
+          if (server.getPlayerList().getPlayerByName(info.getString("Name")) != null) {
             showInfo(info);
           }
         }
       } else {
         if (holding) {
-          this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.of("")));
+          this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.nullToEmpty("")));
           holding = false;
         }
       }
@@ -107,26 +107,26 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
     }
   }
 
-  private void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
+  private void updateCompass(ServerPlayer player, CompoundTag nbt, ServerPlayer trackedPlayer) {
     nbt.remove("LodestonePos");
     nbt.remove("LodestoneDimension");
 
-    nbt.put("Info", new NbtCompound());
-    if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
-      NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
-      NbtList positions = playerTag.getList("Positions", 10);
+    nbt.put("Info", new CompoundTag());
+    if (trackedPlayer.getTeam() != null && Objects.equals(trackedPlayer.getTeam().getName(), "runners")) {
+      CompoundTag playerTag = trackedPlayer.saveWithoutId(new CompoundTag());
+      ListTag positions = playerTag.getList("Positions", 10);
       int i;
       for (i = 0; i < positions.size(); ++i) {
-        NbtCompound compound = positions.getCompound(i);
-        if (Objects.equals(compound.getString("LodestoneDimension"), player.writeNbt(new NbtCompound()).getString("Dimension"))) {
-          nbt.copyFrom(compound);
+        CompoundTag compound = positions.getCompound(i);
+        if (Objects.equals(compound.getString("LodestoneDimension"), player.saveWithoutId(new CompoundTag()).getString("Dimension"))) {
+          nbt.merge(compound);
           break;
         }
       }
 
-      NbtCompound info = nbt.getCompound("Info");
-      info.putLong("LastUpdateTime", player.getWorld().getTime());
-      info.putString("Name", trackedPlayer.getEntityName());
+      CompoundTag info = nbt.getCompound("Info");
+      info.putLong("LastUpdateTime", player.level().getGameTime());
+      info.putString("Name", trackedPlayer.getScoreboardName());
       info.putString("Dimension", playerTag.getString("Dimension"));
     }
 
@@ -136,21 +136,21 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
   public void onDeath(DamageSource source, CallbackInfo ci) {
     Scoreboard scoreboard = server.getScoreboard();
 
-    if (this.getScoreboardTeam() != null) {
-      if (this.getScoreboardTeam().isEqual(scoreboard.getTeam("runners"))) {
+    if (this.getTeam() != null) {
+      if (this.getTeam().isAlliedTo(scoreboard.getPlayerTeam("runners"))) {
 
-        changeGameMode(GameMode.SPECTATOR);
-        scoreboard.clearPlayerTeam(this.getName().getString());
+        changeGameMode(GameType.SPECTATOR);
+        scoreboard.removePlayerFromTeam(this.getName().getString());
 
-        if (server.getScoreboard().getTeam("runners").getPlayerList().isEmpty()) {
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"translate\":\"manhunt.win.hunters.subtitle\",\"color\":\"white\"}");
-          server.getCommandManager().executeWithPrefix(this.getCommandSource().withSilent().withLevel(2), "title @a title {\"translate\":\"manhunt.win.hunters.title\",\"color\":\"white\"}"); //
+        if (server.getScoreboard().getPlayerTeam("runners").getPlayers().isEmpty()) {
+          server.getCommands().performPrefixedCommand(this.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a subtitle {\"translate\":\"manhunt.win.hunters.subtitle\",\"color\":\"white\"}");
+          server.getCommands().performPrefixedCommand(this.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a title {\"translate\":\"manhunt.win.hunters.title\",\"color\":\"white\"}"); //
         }
       }
     }
   }
 
-  private void showInfo(NbtCompound info) {
+  private void showInfo(CompoundTag info) {
     String dim = info.getString("Dimension");
     String dimension = "";
     if (!info.contains("Dimension")) {
@@ -165,9 +165,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
     if(config.isShowTitle()) {
       if(config.isShowRunnerDimension()) {
-        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Text.translatable(dimension))));
+        this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Component.translatable(dimension))));
       } else {
-        this.networkHandler.sendPacket(new OverlayMessageS2CPacket(Text.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));
+        this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));
       }
 
     }
@@ -175,16 +175,16 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
   private boolean hasTracker() {
     boolean n = false;
-    for (ItemStack item : this.getInventory().main) {
-      if (item.getItem().equals(Items.COMPASS) && item.getNbt() != null && item.getNbt().getBoolean("Tracker")) {
+    for (ItemStack item : this.getInventory().items) {
+      if (item.getItem().equals(Items.COMPASS) && item.getTag() != null && item.getTag().getBoolean("Tracker")) {
         n = true;
         break;
       }
     }
 
-    if (this.playerScreenHandler.getCursorStack().getNbt() != null && this.playerScreenHandler.getCursorStack().getNbt().getBoolean("Tracker")) {
+    if (this.inventoryMenu.getCarried().getTag() != null && this.inventoryMenu.getCarried().getTag().getBoolean("Tracker")) {
       n = true;
-    } else if (this.getOffHandStack().getNbt() != null && this.getOffHandStack().getNbt().getBoolean("Tracker")) {
+    } else if (this.getOffhandItem().getTag() != null && this.getOffhandItem().getTag().getBoolean("Tracker")) {
       n = true;
     }
 
@@ -193,9 +193,9 @@ public abstract class ServerPlayerEntityMixin extends PlayerEntity {
 
   private boolean holdingTracker() {
     boolean n = false;
-    if (this.getMainHandStack().getNbt() != null && this.getMainHandStack().getNbt().getBoolean("Tracker") && this.getMainHandStack().getNbt().getCompound("Info").contains("Name")) {
+    if (this.getMainHandItem().getTag() != null && this.getMainHandItem().getTag().getBoolean("Tracker") && this.getMainHandItem().getTag().getCompound("Info").contains("Name")) {
       n = true;
-    } else if (this.getOffHandStack().getNbt() != null && this.getOffHandStack().getNbt().getBoolean("Tracker") && this.getOffHandStack().getNbt().getCompound("Info").contains("Name")) {
+    } else if (this.getOffhandItem().getTag() != null && this.getOffhandItem().getTag().getBoolean("Tracker") && this.getOffhandItem().getTag().getCompound("Info").contains("Name")) {
       n = true;
     }
     return n;

@@ -1,24 +1,24 @@
 package cn.noryea.manhunt.mixin;
 
 import cn.noryea.manhunt.ManhuntConfig;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(EnderDragonEntity.class)
+@Mixin(EnderDragon.class)
 public abstract class EnderDragonEntityMixin {
 
   //End the game when runners kill the enderdragon
   @Inject(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
   private void runnersWon(CallbackInfo ci) {
-    EnderDragonEntity dragon = ((EnderDragonEntity)(Object) this);
+    EnderDragon dragon = ((EnderDragon)(Object) this);
     MinecraftServer server = dragon.getServer();
-    if(ManhuntConfig.INSTANCE.isRunnersWinOnDragonDeath() && !server.getScoreboard().getTeam("runners").getPlayerList().isEmpty() && dragon.ticksSinceDeath == 1) {
-      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a subtitle {\"translate\":\"manhunt.win.runners.subtitle\",\"color\":\"white\"}");
-      server.getCommandManager().executeWithPrefix(server.getCommandSource().withSilent().withLevel(2), "title @a title {\"translate\":\"manhunt.win.runners.title\",\"color\":\"white\"}");
+    if(ManhuntConfig.INSTANCE.isRunnersWinOnDragonDeath() && !server.getScoreboard().getPlayerTeam("runners").getPlayers().isEmpty() && dragon.dragonDeathTime == 1) {
+      server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a subtitle {\"translate\":\"manhunt.win.runners.subtitle\",\"color\":\"white\"}");
+      server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a title {\"translate\":\"manhunt.win.runners.title\",\"color\":\"white\"}");
     }
   }
 }

@@ -2,22 +2,6 @@ package cn.noryea.manhunt.mixin;
 
 import cn.noryea.manhunt.Manhunt;
 import cn.noryea.manhunt.ManhuntConfig;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,26 +12,42 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Objects;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
-@Mixin(ServerPlayerInteractionManager.class)
+@Mixin(ServerPlayerGameMode.class)
 public abstract class ServerPlayerInteractionManagerMixin {
 
   private final ManhuntConfig config = ManhuntConfig.INSTANCE;
 
   @Final
   @Shadow
-  protected ServerPlayerEntity player;
+  protected ServerPlayer player;
 
   @Inject(method = "processBlockBreakingAction", at = @At("HEAD"))
-  public void processBlockBreakingAction(BlockPos pos, PlayerActionC2SPacket.Action action, Direction direction, int worldHeight, int sequence, CallbackInfo ci) {
-    if (action.equals(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK)) {
-      cycleTrackedPlayer(this.player, this.player.getMainHandStack().getNbt());
+  public void processBlockBreakingAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int worldHeight, int sequence, CallbackInfo ci) {
+    if (action.equals(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK)) {
+      cycleTrackedPlayer(this.player, this.player.getMainHandItem().getTag());
     }
   }
 
   @Inject(method = "tryBreakBlock", at = @At("HEAD"))
-  public void tryBreakBlock(BlockPos pos, CallbackInfoReturnable<ActionResult> ci) {
-    cycleTrackedPlayer(this.player, this.player.getMainHandStack().getNbt());
+  public void tryBreakBlock(BlockPos pos, CallbackInfoReturnable<InteractionResult> ci) {
+    cycleTrackedPlayer(this.player, this.player.getMainHandItem().getTag());
   }
 
   @Inject(
@@ -56,41 +56,41 @@ public abstract class ServerPlayerInteractionManagerMixin {
           target = "Lnet/minecraft/item/ItemStack;use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/TypedActionResult;",
           value = "INVOKE"
       ))
-  public void interactItem(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, CallbackInfoReturnable<ActionResult> cbi) {
-    if (stack.getNbt() != null && stack.getNbt().getBoolean("Tracker") && !player.isSpectator() && player.isTeamPlayer(world.getScoreboard().getTeam("hunters"))) {
-      player.getItemCooldownManager().set(stack.getItem(), config.getDelay() * 20);
-      if (!stack.getOrCreateNbt().contains("Info")) {
-        stack.getOrCreateNbt().put("Info", new NbtCompound());
+  public void interactItem(ServerPlayer player, Level world, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cbi) {
+    if (stack.getTag() != null && stack.getTag().getBoolean("Tracker") && !player.isSpectator() && player.isAlliedTo(world.getScoreboard().getPlayerTeam("hunters"))) {
+      player.getCooldowns().addCooldown(stack.getItem(), config.getDelay() * 20);
+      if (!stack.getOrCreateTag().contains("Info")) {
+        stack.getOrCreateTag().put("Info", new CompoundTag());
       }
-      NbtCompound info = stack.getOrCreateNbt().getCompound("Info");
+      CompoundTag info = stack.getOrCreateTag().getCompound("Info");
 
-      if (!info.contains("Name", NbtElement.STRING_TYPE) && !Manhunt.allRunners.isEmpty()) {
+      if (!info.contains("Name", Tag.TAG_STRING) && !Manhunt.allRunners.isEmpty()) {
         info.putString("Name", Manhunt.allRunners.get(0).getName().getString());
       }
 
-      ServerPlayerEntity trackedPlayer = world.getServer().getPlayerManager().getPlayer(info.getString("Name"));
+      ServerPlayer trackedPlayer = world.getServer().getPlayerList().getPlayerByName(info.getString("Name"));
 
       if (trackedPlayer != null) {
-        player.networkHandler.sendPacket(new PlaySoundS2CPacket(SoundEvents.UI_BUTTON_CLICK, SoundCategory.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.85f, 0.95f, 0));
-        updateCompass(player, stack.getOrCreateNbt(), trackedPlayer);
+        player.connection.send(new ClientboundSoundPacket(SoundEvents.UI_BUTTON_CLICK, SoundSource.PLAYERS, player.getX(), player.getY(), player.getZ(), 0.85f, 0.95f, 0));
+        updateCompass(player, stack.getOrCreateTag(), trackedPlayer);
       }
     }
   }
 
-  private void cycleTrackedPlayer(ServerPlayerEntity player, @Nullable NbtCompound stackNbt) {
-    if (stackNbt != null && stackNbt.getBoolean("Tracker") && player.isTeamPlayer(player.getServer().getScoreboard().getTeam("hunters"))) {
+  private void cycleTrackedPlayer(ServerPlayer player, @Nullable CompoundTag stackNbt) {
+    if (stackNbt != null && stackNbt.getBoolean("Tracker") && player.isAlliedTo(player.getServer().getScoreboard().getPlayerTeam("hunters"))) {
       if (!stackNbt.contains("Info")) {
-        stackNbt.put("Info", new NbtCompound());
+        stackNbt.put("Info", new CompoundTag());
       }
 
       int next;
       int previous = -1;
-      NbtCompound info = stackNbt.getCompound("Info");
+      CompoundTag info = stackNbt.getCompound("Info");
 
-      if (Manhunt.allRunners.isEmpty()) player.sendMessage(Text.translatable("manhunt.item.tracker.norunners"));
+      if (Manhunt.allRunners.isEmpty()) player.sendSystemMessage(Component.translatable("manhunt.item.tracker.norunners"));
       else {
         for (int i = 0; i < Manhunt.allRunners.size(); i++) {
-          ServerPlayerEntity x = Manhunt.allRunners.get(i);
+          ServerPlayer x = Manhunt.allRunners.get(i);
           if (x != null) {
             if (Objects.equals(x.getName().getString(), info.getString("Name"))) {
               previous = i;
@@ -106,32 +106,32 @@ public abstract class ServerPlayerInteractionManagerMixin {
 
         if (previous != next) {
           updateCompass(player, stackNbt, Manhunt.allRunners.get(next));
-          player.sendMessage(Text.translatable("manhunt.item.tracker.switchrunner", Manhunt.allRunners.get(next).getName().getString()));
+          player.sendSystemMessage(Component.translatable("manhunt.item.tracker.switchrunner", Manhunt.allRunners.get(next).getName().getString()));
         }
       }
     }
   }
 
-  private void updateCompass(ServerPlayerEntity player, NbtCompound nbt, ServerPlayerEntity trackedPlayer) {
+  private void updateCompass(ServerPlayer player, CompoundTag nbt, ServerPlayer trackedPlayer) {
     nbt.remove("LodestonePos");
     nbt.remove("LodestoneDimension");
 
-    nbt.put("Info", new NbtCompound());
-    if (trackedPlayer.getScoreboardTeam() != null && Objects.equals(trackedPlayer.getScoreboardTeam().getName(), "runners")) {
-      NbtCompound playerTag = trackedPlayer.writeNbt(new NbtCompound());
-      NbtList positions = playerTag.getList("Positions", 10);
+    nbt.put("Info", new CompoundTag());
+    if (trackedPlayer.getTeam() != null && Objects.equals(trackedPlayer.getTeam().getName(), "runners")) {
+      CompoundTag playerTag = trackedPlayer.saveWithoutId(new CompoundTag());
+      ListTag positions = playerTag.getList("Positions", 10);
       int i;
       for (i = 0; i < positions.size(); ++i) {
-        NbtCompound compound = positions.getCompound(i);
-        if (Objects.equals(compound.getString("LodestoneDimension"), player.writeNbt(new NbtCompound()).getString("Dimension"))) {
-          nbt.copyFrom(compound);
+        CompoundTag compound = positions.getCompound(i);
+        if (Objects.equals(compound.getString("LodestoneDimension"), player.saveWithoutId(new CompoundTag()).getString("Dimension"))) {
+          nbt.merge(compound);
           break;
         }
       }
 
-      NbtCompound info = nbt.getCompound("Info");
-      info.putLong("LastUpdateTime", player.getWorld().getTime());
-      info.putString("Name", trackedPlayer.getEntityName());
+      CompoundTag info = nbt.getCompound("Info");
+      info.putLong("LastUpdateTime", player.level().getGameTime());
+      info.putString("Name", trackedPlayer.getScoreboardName());
       info.putString("Dimension", playerTag.getString("Dimension"));
     }
 

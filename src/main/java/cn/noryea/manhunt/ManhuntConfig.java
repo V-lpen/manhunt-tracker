@@ -1,9 +1,8 @@
 package cn.noryea.manhunt;
 
 import com.google.gson.*;
-import net.minecraft.util.Formatting;
-
 import java.io.*;
+import net.minecraft.ChatFormatting;
 
 import static cn.noryea.manhunt.Manhunt.LOGGER;
 
@@ -17,8 +16,8 @@ public class ManhuntConfig {
   private final File confFile = new File("./config/manhunt.json");
   Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-  private Formatting huntersColor = Formatting.RED;
-  private Formatting runnersColor = Formatting.GREEN;
+  private ChatFormatting huntersColor = ChatFormatting.RED;
+  private ChatFormatting runnersColor = ChatFormatting.GREEN;
   private int delay = 0;
   private boolean runnersWinOnDragonDeath = true;
 
@@ -28,10 +27,10 @@ public class ManhuntConfig {
   private boolean automaticCompassUpdate = false;
   private int automaticCompassUpdateDelay = 0;
   //Getters
-  public Formatting getHuntersColor() {
+  public ChatFormatting getHuntersColor() {
     return huntersColor;
   }
-  public Formatting getRunnersColor() {
+  public ChatFormatting getRunnersColor() {
     return runnersColor;
   }
   public int getDelay() {
@@ -46,13 +45,13 @@ public class ManhuntConfig {
   public int getAutomaticCompassDelay() { return automaticCompassUpdateDelay; }
 
   //Setters
-  public void setHuntersColor(Formatting color) {
-    if(color == null) color = Formatting.WHITE;
+  public void setHuntersColor(ChatFormatting color) {
+    if(color == null) color = ChatFormatting.WHITE;
     huntersColor = color;
     save();
   }
-  public void setRunnersColor(Formatting color) {
-    if(color == null) color = Formatting.WHITE;
+  public void setRunnersColor(ChatFormatting color) {
+    if(color == null) color = ChatFormatting.WHITE;
     runnersColor = color;
     save();
   }
@@ -87,8 +86,8 @@ public class ManhuntConfig {
       JsonObject jo = gson.fromJson(new FileReader(confFile), JsonObject.class);
       JsonElement je;
 
-      if((je = jo.get("huntersColor")) != null) huntersColor = Formatting.byName(je.getAsString());
-      if((je = jo.get("runnersColor")) != null) runnersColor = Formatting.byName(je.getAsString());
+      if((je = jo.get("huntersColor")) != null) huntersColor = ChatFormatting.getByName(je.getAsString());
+      if((je = jo.get("runnersColor")) != null) runnersColor = ChatFormatting.getByName(je.getAsString());
       if((je = jo.get("compassDelay")) != null) delay = je.getAsInt();
       if((je = jo.get("runnersWinOnDragonDeath")) != null) runnersWinOnDragonDeath = je.getAsBoolean();
       if((je = jo.get("showTitle")) != null) showTitle = je.getAsBoolean();
@@ -107,7 +106,7 @@ public class ManhuntConfig {
       if (!confFile.exists()) { confFile.getParentFile().mkdirs(); confFile.createNewFile(); }
 
       JsonObject jo = new JsonObject();
-      jo.add("_ColorsList", new JsonPrimitive(String.join(", ", Formatting.getNames(true, false))));
+      jo.add("_ColorsList", new JsonPrimitive(String.join(", ", ChatFormatting.getNames(true, false))));
       jo.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
       jo.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
       jo.add("compassDelay", new JsonPrimitive(delay));
