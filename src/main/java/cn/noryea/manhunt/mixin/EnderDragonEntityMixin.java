@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EnderDragonEntityMixin {
 
   //End the game when runners kill the enderdragon
-  @Inject(method = "updatePostDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
+  @Inject(method = "tickDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/GameRules;getBoolean(Lnet/minecraft/world/level/GameRules$Key;)Z"))
   private void runnersWon(CallbackInfo ci) {
     EnderDragon dragon = ((EnderDragon)(Object) this);
     MinecraftServer server = dragon.getServer();

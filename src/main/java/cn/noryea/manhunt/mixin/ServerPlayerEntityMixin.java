@@ -1,6 +1,5 @@
 package cn.noryea.manhunt.mixin;
 
-import cn.noryea.manhunt.Manhunt;
 import cn.noryea.manhunt.ManhuntConfig;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
@@ -10,12 +9,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
-import net.minecraft.text.*;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.ProfilePublicKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -38,17 +34,16 @@ public abstract class ServerPlayerEntityMixin extends Player {
   @Shadow
   public MinecraftServer server;
   @Shadow
-  public ServerGamePacketListenerImpl networkHandler;
+  public ServerGamePacketListenerImpl connection;
 
   @Shadow
-  public abstract boolean changeGameMode(GameType gameMode);
-
-  @Shadow @Final public ServerPlayerGameMode interactionManager;
+  public abstract boolean setGameMode(GameType gameMode);
 
   boolean holding;
   ManhuntConfig config = ManhuntConfig.INSTANCE;
   private long lastDelay = System.currentTimeMillis();
-  public ServerPlayerEntityMixin(Level world, BlockPos pos, float yaw, GameProfile profile, ProfilePublicKey key) {
+
+  public ServerPlayerEntityMixin(Level world, BlockPos pos, float yaw, GameProfile profile) {
     super(world, pos, yaw, profile);
   }
 
@@ -99,7 +94,7 @@ public abstract class ServerPlayerEntityMixin extends Player {
         }
       } else {
         if (holding) {
-          this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.nullToEmpty("")));
+          this.connection.send(new ClientboundSetActionBarTextPacket(Component.nullToEmpty("")));
           holding = false;
         }
       }
@@ -132,14 +127,14 @@ public abstract class ServerPlayerEntityMixin extends Player {
 
   }
 
-  @Inject(method = "onDeath", at = @At("HEAD"))
+  @Inject(method = "die", at = @At("HEAD"))
   public void onDeath(DamageSource source, CallbackInfo ci) {
     Scoreboard scoreboard = server.getScoreboard();
 
     if (this.getTeam() != null) {
       if (this.getTeam().isAlliedTo(scoreboard.getPlayerTeam("runners"))) {
 
-        changeGameMode(GameType.SPECTATOR);
+        setGameMode(GameType.SPECTATOR);
         scoreboard.removePlayerFromTeam(this.getName().getString());
 
         if (server.getScoreboard().getPlayerTeam("runners").getPlayers().isEmpty()) {
@@ -165,9 +160,9 @@ public abstract class ServerPlayerEntityMixin extends Player {
 
     if(config.isShowTitle()) {
       if(config.isShowRunnerDimension()) {
-        this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Component.translatable(dimension))));
+        this.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Component.translatable(dimension))));
       } else {
-        this.networkHandler.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));
+        this.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));
       }
 
     }

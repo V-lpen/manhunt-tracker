@@ -44,14 +44,14 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     });
   }
 
-  @Inject(method = "writeCustomDataToNbt", at = @At("RETURN"))
-  public void writeCustomDataToNbt(CompoundTag nbt, CallbackInfo cbi) {
+  @Inject(method = "addAdditionalSaveData", at = @At("RETURN"))
+  public void addAdditionalSaveData(CompoundTag nbt, CallbackInfo cbi) {
     nbt.putBoolean("manhuntModded", true);
     nbt.put("Positions", positions);
   }
 
-  @Inject(method = "readCustomDataFromNbt", at = @At("RETURN"))
-  public void readCustomDataFromNbt(CompoundTag nbt, CallbackInfo cbi) {
+  @Inject(method = "readAdditionalSaveData", at = @At("RETURN"))
+  public void readAdditionalSaveData(CompoundTag nbt, CallbackInfo cbi) {
     this.positions = nbt.getList("Positions", 10);
   }
 }

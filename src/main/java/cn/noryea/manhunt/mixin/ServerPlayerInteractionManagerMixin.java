@@ -38,25 +38,25 @@ public abstract class ServerPlayerInteractionManagerMixin {
   @Shadow
   protected ServerPlayer player;
 
-  @Inject(method = "processBlockBreakingAction", at = @At("HEAD"))
-  public void processBlockBreakingAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int worldHeight, int sequence, CallbackInfo ci) {
+  @Inject(method = "handleBlockBreakAction", at = @At("HEAD"))
+  public void handleBlockBreakAction(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int worldHeight, int sequence, CallbackInfo ci) {
     if (action.equals(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK)) {
       cycleTrackedPlayer(this.player, this.player.getMainHandItem().getTag());
     }
   }
 
-  @Inject(method = "tryBreakBlock", at = @At("HEAD"))
-  public void tryBreakBlock(BlockPos pos, CallbackInfoReturnable<InteractionResult> ci) {
+  @Inject(method = "destroyBlock", at = @At("HEAD"))
+  public void destroyBlock(BlockPos pos, CallbackInfoReturnable<InteractionResult> ci) {
     cycleTrackedPlayer(this.player, this.player.getMainHandItem().getTag());
   }
 
   @Inject(
-      method = "interactItem",
+      method = "useItem",
       at = @At(
-          target = "Lnet/minecraft/item/ItemStack;use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/TypedActionResult;",
+          target = "Lnet/minecraft/world/item/ItemStack;use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResultHolder;",
           value = "INVOKE"
       ))
-  public void interactItem(ServerPlayer player, Level world, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cbi) {
+  public void useItem(ServerPlayer player, Level world, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cbi) {
     if (stack.getTag() != null && stack.getTag().getBoolean("Tracker") && !player.isSpectator() && player.isAlliedTo(world.getScoreboard().getPlayerTeam("hunters"))) {
       player.getCooldowns().addCooldown(stack.getItem(), config.getDelay() * 20);
       if (!stack.getOrCreateTag().contains("Info")) {
