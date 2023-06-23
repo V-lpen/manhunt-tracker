@@ -40,6 +40,8 @@ public class ManhuntCommand {
             .executes((ctx) -> executeTeamLimit(ctx.getSource(), TeamArgument.getTeam(ctx, "team"), IntegerArgumentType.getInteger(ctx, "limit"))))))
       .then(Commands.literal("clearTeams").requires((src) -> src.hasPermission(2))
         .executes((ctx) -> executeClearTeams(ctx.getSource())))
+      .then(Commands.literal("leave")
+        .executes((ctx) -> executeLeave(ctx.getSource())))
       .then(Commands.literal("cure").requires((src) -> src.hasPermission(2))
         .then(Commands.argument("targets", EntityArgument.players())
           .executes((ctx) -> executeCure(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets")))))
@@ -136,6 +138,13 @@ public class ManhuntCommand {
       }
     }
 
+    return 1;
+  }
+
+  private static int executeLeave(CommandSourceStack source) {
+    Scoreboard scoreboard = source.getServer().getScoreboard();
+    scoreboard.removePlayerFromTeam(source.getPlayer().getScoreboardName());
+    source.sendSuccess(() -> Component.translatable("commands.team.leave.success.single", source.getPlayer().getDisplayName()), true);
     return 1;
   }
 
