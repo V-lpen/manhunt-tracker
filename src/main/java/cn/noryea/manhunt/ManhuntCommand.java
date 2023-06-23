@@ -38,8 +38,8 @@ public class ManhuntCommand {
         .then(Commands.argument("team", TeamArgument.team())
           .then(Commands.argument("limit", IntegerArgumentType.integer(-1, 255))
             .executes((ctx) -> executeTeamLimit(ctx.getSource(), TeamArgument.getTeam(ctx, "team"), IntegerArgumentType.getInteger(ctx, "limit"))))))
-      .then(Commands.literal("clearTeams").requires((src) -> src.hasPermission(2)))
-        .executes((ctx) -> executeClearTeams(ctx.getSource()))
+      .then(Commands.literal("clearTeams").requires((src) -> src.hasPermission(2))
+        .executes((ctx) -> executeClearTeams(ctx.getSource())))
       .then(Commands.literal("cure").requires((src) -> src.hasPermission(2))
         .then(Commands.argument("targets", EntityArgument.players())
           .executes((ctx) -> executeCure(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets")))))
@@ -127,10 +127,11 @@ public class ManhuntCommand {
         source.sendSuccess(() -> Component.translatable("commands.team.empty.success", huntersPlayers.size(), hunters.getFormattedDisplayName()), true);
       }
     }
+
     ArrayList<String> runnersPlayers = Lists.newArrayList(runners.getPlayers());
     if(!runnersPlayers.isEmpty()) {
       for (String string : runnersPlayers) {
-        scoreboard.removePlayerFromTeam(string, hunters);
+        scoreboard.removePlayerFromTeam(string, runners);
         source.sendSuccess(() -> Component.translatable("commands.team.empty.success", runnersPlayers.size(), runners.getFormattedDisplayName()), true);
       }
     }
