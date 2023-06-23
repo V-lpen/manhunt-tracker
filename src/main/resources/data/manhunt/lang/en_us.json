@@ -12,6 +12,7 @@
   "manhunt.commands.teamcolor.success": "§7Changed color of §f%1$s §7team to §f%2$s",
   "manhunt.commands.showactionbar": "§7Set showActionBar to: §f%s",
   "manhunt.commands.showrunnerdimension": "§7Set showActionBar to: §f%s",
+  "manhunt.commands.friendlyfire": "§7Set friendlyFire to: §f%s",
   "manhunt.commands.reload": "§7Successfully reloaded configuration file",
   "manhunt.teams.hunters.name": "§cHunters",
   "manhunt.teams.runners.name": "§aRunners",

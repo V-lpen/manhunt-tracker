@@ -12,6 +12,7 @@
   "manhunt.commands.teamcolor.success": "§7Сменили цвет команды \"§f%1$s§7\" на §f%2$s",
   "manhunt.commands.showactionbar": "§7showActionBar теперь §f%s",
   "manhunt.commands.showrunnerdimension": "§7showActionBar теперь §f%s",
+  "manhunt.commands.friendlyfire": "§7friendlyFire теперь: §f%s",
   "manhunt.commands.reload": "§7Файл конфигурации успешно перезагружен",
   "manhunt.teams.hunters.name": "§cОхотники",
   "manhunt.teams.runners.name": "§aБегуны",

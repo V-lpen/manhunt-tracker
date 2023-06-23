@@ -158,8 +158,8 @@ public abstract class ServerPlayerEntityMixin extends Player {
       dimension = "manhunt.scoreboard.world.the_end";
     }
 
-    if(config.isShowTitle()) {
-      if(config.isShowRunnerDimension()) {
+    if (config.isShowTitle()) {
+      if (config.isShowRunnerDimension()) {
         this.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.text", info.getString("Name"), Component.translatable(dimension))));
       } else {
         this.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("manhunt.scoreboard.target.textnodimension", info.getString("Name"))));

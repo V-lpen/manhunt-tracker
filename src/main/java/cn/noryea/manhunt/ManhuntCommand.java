@@ -19,7 +19,12 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.scores.Team;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class ManhuntCommand {
   private static final ManhuntConfig config = ManhuntConfig.INSTANCE;
@@ -28,39 +33,42 @@ public class ManhuntCommand {
   public static void registerCommands(CommandDispatcher<CommandSourceStack> dis, CommandBuildContext reg, Commands.CommandSelection env) {
 
     dis.register(Commands.literal("mh")
-        .then(Commands.literal("join")
-            .then(Commands.argument("team", TeamArgument.team())
-                .executes((ctx) -> executeJoin(ctx.getSource(), TeamArgument.getTeam(ctx, "team")))))
-        .then(Commands.literal("cure").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("targets", EntityArgument.players())
-                .executes((ctx) -> executeCure(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets")))))
-        .then(Commands.literal("freeze").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 120))
-                .executes((ctx) -> executeFreeze(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
-        .then(Commands.literal("compassDelay").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("seconds", IntegerArgumentType.integer(0, 120))
-                .executes((ctx) -> executeCompassDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
-        .then(Commands.literal("automaticCompassUpdate").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("boolean", BoolArgumentType.bool())
-                .executes((ctx) -> executeSetAutomaticCompassUpdate(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
-        .then(Commands.literal("automaticCompassUpdateDelay").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 120))
-                .executes((ctx) -> executeSetAutomaticCompassUpdateDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
-        .then(Commands.literal("runnersWinOnDragonDeath").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("boolean", BoolArgumentType.bool())
-                .executes((ctx) -> setRunnersWinOnDragonDeath(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
-        .then(Commands.literal("setColor").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("team", TeamArgument.team())
-                .then(Commands.argument("color", ColorArgument.color())
-                    .executes((ctx) -> executeChangeTeamColor(ctx.getSource(), TeamArgument.getTeam(ctx, "team"), ColorArgument.getColor(ctx, "color"))))))
-        .then(Commands.literal("showActionBar").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("boolean", BoolArgumentType.bool())
-                .executes((ctx) -> executeShowActionBar(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
-        .then(Commands.literal("showRunnerDimension").requires((src) -> src.hasPermission(2))
-            .then(Commands.argument("boolean", BoolArgumentType.bool())
-                .executes((ctx) -> executeShowRunnerDimension(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
-        .then(Commands.literal("reload").requires((src) -> src.hasPermission(2))
-            .executes((ctx) -> executeReload(ctx.getSource())))
+      .then(Commands.literal("join")
+        .then(Commands.argument("team", TeamArgument.team())
+          .executes((ctx) -> executeJoin(ctx.getSource(), TeamArgument.getTeam(ctx, "team")))))
+      .then(Commands.literal("cure").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("targets", EntityArgument.players())
+          .executes((ctx) -> executeCure(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets")))))
+      .then(Commands.literal("freeze").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 120))
+          .executes((ctx) -> executeFreeze(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
+      .then(Commands.literal("compassDelay").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("seconds", IntegerArgumentType.integer(0, 120))
+          .executes((ctx) -> executeCompassDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
+      .then(Commands.literal("automaticCompassUpdate").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("boolean", BoolArgumentType.bool())
+          .executes((ctx) -> executeSetAutomaticCompassUpdate(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+      .then(Commands.literal("automaticCompassUpdateDelay").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 120))
+          .executes((ctx) -> executeSetAutomaticCompassUpdateDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
+      .then(Commands.literal("runnersWinOnDragonDeath").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("boolean", BoolArgumentType.bool())
+          .executes((ctx) -> setRunnersWinOnDragonDeath(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+      .then(Commands.literal("setColor").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("team", TeamArgument.team())
+          .then(Commands.argument("color", ColorArgument.color())
+            .executes((ctx) -> executeChangeTeamColor(ctx.getSource(), TeamArgument.getTeam(ctx, "team"), ColorArgument.getColor(ctx, "color"))))))
+      .then(Commands.literal("showActionBar").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("boolean", BoolArgumentType.bool())
+          .executes((ctx) -> executeShowActionBar(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+      .then(Commands.literal("showRunnerDimension").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("boolean", BoolArgumentType.bool())
+          .executes((ctx) -> executeShowRunnerDimension(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+      .then(Commands.literal("friendlyfire").requires((src) -> src.hasPermission(2))
+        .then(Commands.argument("boolean", BoolArgumentType.bool())
+          .executes((ctx) -> executeFriendlyFire(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
+      .then(Commands.literal("reload").requires((src) -> src.hasPermission(2))
+        .executes((ctx) -> executeReload(ctx.getSource())))
     );
   }
 
@@ -128,9 +136,11 @@ public class ManhuntCommand {
   }
 
   private static int executeChangeTeamColor(CommandSourceStack source, PlayerTeam team, ChatFormatting color) {
-    if(team.getName().equals("hunters")) { config.setHuntersColor(color); }
-    else if(team.getName().equals("runners")) { config.setRunnersColor(color); }
-    else {
+    if (team.getName().equals("hunters")) {
+      config.setHuntersColor(color);
+    } else if (team.getName().equals("runners")) {
+      config.setRunnersColor(color);
+    } else {
       source.sendSuccess(() -> Component.translatable("manhunt.commands.teamcolor.badteam", Component.translatable("manhunt.teams.hunters.name"), Component.translatable("manhunt.teams.runners.name")), true);
       return -1;
     }
@@ -161,6 +171,17 @@ public class ManhuntCommand {
   private static int executeShowRunnerDimension(CommandSourceStack source, boolean bool) {
     config.setShowRunnerDimension(bool);
     source.sendSuccess(() -> Component.translatable("manhunt.commands.showrunnerdimension", bool), true);
+    return 1;
+  }
+
+  private static int executeFriendlyFire(CommandSourceStack source, boolean bool) {
+    Collection<String> teams = source.getAllTeams();
+    Scoreboard scoreboard = source.getServer().getScoreboard();
+    if(teams.contains("hunters"))
+      scoreboard.getPlayerTeam("hunters").setAllowFriendlyFire(bool);
+    if(teams.contains("runners"))
+      scoreboard.getPlayerTeam("runners").setAllowFriendlyFire(bool);
+    source.sendSuccess(() -> Component.translatable("manhunt.commands.friendlyfire", bool), true);
     return 1;
   }
 
