@@ -11,6 +11,7 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+	mavenCentral()
 	maven {
 		name = 'ParchmentMC'
 		url = 'https://maven.parchmentmc.org'
@@ -39,9 +40,12 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	//	Server translations API
-	// include(modImplementation("fr.catcore:server-translations-api:${project.server_translations_version}"))
-	// jitpack version
+	// 	include(modImplementation("fr.catcore:server-translations-api:${project.server_translations_version}"))
+	// 	jitpack version
 	include(modImplementation("com.github.NucleoidMC:Server-Translations:${project.server_translations_version}"))
+	//	Server side command arguments. OUTDATED
+	//  include(modImplementation("ca.stellardrift:colonel:0.2"))
+
 	//	Carpet for fake players
 	//	modImplementation "com.github.gnembon:fabric-carpet:${project.carpet_version}" jitpack
 	modImplementation "maven.modrinth:carpet:${project.carpet_version}"

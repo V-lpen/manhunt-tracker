@@ -19,6 +19,9 @@ public class ManhuntConfig {
 
   private ChatFormatting huntersColor = ChatFormatting.RED;
   private ChatFormatting runnersColor = ChatFormatting.GREEN;
+  private int huntersLimit = -1;
+  private int runnersLimit = -1;
+
   private int delay = 0;
   private boolean runnersWinOnDragonDeath = true;
 
@@ -59,6 +62,14 @@ public class ManhuntConfig {
 
   public int getAutomaticCompassDelay() {
     return automaticCompassUpdateDelay;
+  }
+
+  public int getHuntersLimit() {
+    return huntersLimit;
+  }
+
+  public int getRunnersLimit() {
+    return runnersLimit;
   }
 
   //Setters
@@ -104,6 +115,16 @@ public class ManhuntConfig {
     save();
   }
 
+  public void setHuntersLimit(int limit) {
+    huntersLimit = limit;
+    save();
+  }
+
+  public void setRunnersLimit(int limit) {
+    runnersLimit = limit;
+    save();
+  }
+
   public void load() {
     if (!confFile.exists() || confFile.length() == 0) save();
     try {
@@ -112,6 +133,8 @@ public class ManhuntConfig {
 
       if ((je = jo.get("huntersColor")) != null) huntersColor = ChatFormatting.getByName(je.getAsString());
       if ((je = jo.get("runnersColor")) != null) runnersColor = ChatFormatting.getByName(je.getAsString());
+      if ((je = jo.get("huntersLimit")) != null) huntersLimit = je.getAsInt();
+      if ((je = jo.get("runnersLimit")) != null) runnersLimit = je.getAsInt();
       if ((je = jo.get("compassDelay")) != null) delay = je.getAsInt();
       if ((je = jo.get("runnersWinOnDragonDeath")) != null) runnersWinOnDragonDeath = je.getAsBoolean();
       if ((je = jo.get("showTitle")) != null) showTitle = je.getAsBoolean();
@@ -136,6 +159,8 @@ public class ManhuntConfig {
       jo.add("_ColorsList", new JsonPrimitive(String.join(", ", ChatFormatting.getNames(true, false))));
       jo.add("huntersColor", new JsonPrimitive(huntersColor.getName()));
       jo.add("runnersColor", new JsonPrimitive(runnersColor.getName()));
+      jo.add("huntersLimit", new JsonPrimitive(huntersLimit));
+      jo.add("runnersLimit", new JsonPrimitive(runnersLimit));
       jo.add("compassDelay", new JsonPrimitive(delay));
       jo.add("runnersWinOnDragonDeath", new JsonPrimitive(runnersWinOnDragonDeath));
       jo.add("showTitle", new JsonPrimitive(showTitle));

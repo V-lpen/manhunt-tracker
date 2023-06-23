@@ -17,6 +17,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -78,7 +79,8 @@ public abstract class ServerPlayerInteractionManagerMixin {
   }
 
   private void cycleTrackedPlayer(ServerPlayer player, @Nullable CompoundTag stackNbt) {
-    if (stackNbt != null && stackNbt.getBoolean("Tracker") && player.isAlliedTo(player.getServer().getScoreboard().getPlayerTeam("hunters"))) {
+    if (stackNbt != null && stackNbt.getBoolean("Tracker") && player.isAlliedTo(player.getServer().getScoreboard().getPlayerTeam("hunters")) && !player.getCooldowns().isOnCooldown(Items.COMPASS)) {
+
       if (!stackNbt.contains("Info")) {
         stackNbt.put("Info", new CompoundTag());
       }
@@ -90,6 +92,8 @@ public abstract class ServerPlayerInteractionManagerMixin {
       if (Manhunt.allRunners.isEmpty())
         player.sendSystemMessage(Component.translatable("manhunt.item.tracker.norunners"));
       else {
+        player.getCooldowns().addCooldown(player.getMainHandItem().getItem(), config.getDelay() * 20);
+
         for (int i = 0; i < Manhunt.allRunners.size(); i++) {
           ServerPlayer x = Manhunt.allRunners.get(i);
           if (x != null) {

@@ -59,7 +59,15 @@ public class Manhunt implements ModInitializer {
 
     });
 
-    CommandRegistrationCallback.EVENT.register(ManhuntCommand::registerCommands);
+    /*
+    ArgumentTypeRegistry.registerArgumentType(new ResourceLocation("manhunt", "team"), ManhuntTeamArgument.class, SingletonArgumentInfo.contextFree(ManhuntTeamArgument::team));
+    ServerArgumentType.<EnumArgumentType<?>>builder(id("enum"))
+      .type(EnumArgumentType.class)
+      .serializer(new EnumArgumentType.Serializer())
+      .fallbackProvider(arg -> StringArgumentType.word())
+      .register();
+    */
 
+    CommandRegistrationCallback.EVENT.register(ManhuntCommand::registerCommands);
   }
 }

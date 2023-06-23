@@ -1,5 +1,6 @@
 package cn.noryea.manhunt;
 
+import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -19,12 +20,9 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.scores.Team;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class ManhuntCommand {
   private static final ManhuntConfig config = ManhuntConfig.INSTANCE;
@@ -36,6 +34,12 @@ public class ManhuntCommand {
       .then(Commands.literal("join")
         .then(Commands.argument("team", TeamArgument.team())
           .executes((ctx) -> executeJoin(ctx.getSource(), TeamArgument.getTeam(ctx, "team")))))
+      .then(Commands.literal("teamLimit")
+        .then(Commands.argument("team", TeamArgument.team())
+          .then(Commands.argument("limit", IntegerArgumentType.integer(-1, 255))
+            .executes((ctx) -> executeTeamLimit(ctx.getSource(), TeamArgument.getTeam(ctx, "team"), IntegerArgumentType.getInteger(ctx, "limit"))))))
+      .then(Commands.literal("clearTeams").requires((src) -> src.hasPermission(2)))
+        .executes((ctx) -> executeClearTeams(ctx.getSource()))
       .then(Commands.literal("cure").requires((src) -> src.hasPermission(2))
         .then(Commands.argument("targets", EntityArgument.players())
           .executes((ctx) -> executeCure(ctx.getSource(), EntityArgument.getPlayers(ctx, "targets")))))
@@ -75,8 +79,61 @@ public class ManhuntCommand {
   private static int executeJoin(CommandSourceStack source, PlayerTeam team) {
     Scoreboard scoreboard = source.getServer().getScoreboard();
 
+    if(!team.getName().equals("hunters") && !team.getName().equals("runners")) {
+      source.sendFailure(Component.translatable("manhunt.commands.join.wrongteam", Component.translatable("manhunt.teams.hunters.name"), Component.translatable("manhunt.teams.runners.name")));
+      return -1;
+    }
+
+    if((team.getName().equals("hunters") && config.getHuntersLimit() >= 0 && team.getPlayers().size() >= config.getHuntersLimit()) ||
+      (team.getName().equals("runners") && config.getRunnersLimit() >= 0 && team.getPlayers().size() >= config.getRunnersLimit())) {
+      source.sendFailure(Component.translatable("manhunt.commands.join.teamlimit", Component.translatable("manhunt.teams." + team.getName() + ".name")));
+      return -1;
+    }
+
     scoreboard.addPlayerToTeam(source.getPlayer().getName().getString(), team);
     source.sendSuccess(() -> Component.translatable("commands.team.join.success.single", source.getPlayer().getName(), team.getFormattedDisplayName()), true);
+    return 1;
+  }
+
+  private static int executeTeamLimit(CommandSourceStack source, PlayerTeam team, int limit) {
+    if(!team.getName().equals("hunters") && !team.getName().equals("runners")) {
+      source.sendFailure(Component.translatable("manhunt.commands.teamlimit.wrongteam", Component.translatable("manhunt.teams.hunters.name"), Component.translatable("manhunt.teams.runners.name")));
+      return -1;
+    }
+
+    switch (team.getName()) {
+      case "hunters" -> config.setHuntersLimit(limit);
+      case "runners" -> config.setRunnersLimit(limit);
+    }
+
+    source.sendSuccess(() -> Component.translatable("manhunt.commands.teamlimit", Component.translatable("manhunt.teams." + team.getName() + ".name"), limit), true);
+    return 1;
+  }
+
+  private static int executeClearTeams(CommandSourceStack source) {
+    Scoreboard scoreboard = source.getServer().getScoreboard();
+    PlayerTeam hunters = scoreboard.getPlayerTeam("hunters");
+    PlayerTeam runners = scoreboard.getPlayerTeam("runners");
+
+    if(hunters == null || runners == null) {
+      source.sendFailure(Component.translatable("manhunt.commands.error.noteam"));
+      return -1;
+    }
+
+    ArrayList<String> huntersPlayers = Lists.newArrayList(hunters.getPlayers());
+    if(!huntersPlayers.isEmpty()) {
+      for (String string : huntersPlayers) {
+        scoreboard.removePlayerFromTeam(string, hunters);
+        source.sendSuccess(() -> Component.translatable("commands.team.empty.success", huntersPlayers.size(), hunters.getFormattedDisplayName()), true);
+      }
+    }
+    ArrayList<String> runnersPlayers = Lists.newArrayList(runners.getPlayers());
+    if(!runnersPlayers.isEmpty()) {
+      for (String string : runnersPlayers) {
+        scoreboard.removePlayerFromTeam(string, hunters);
+        source.sendSuccess(() -> Component.translatable("commands.team.empty.success", runnersPlayers.size(), runners.getFormattedDisplayName()), true);
+      }
+    }
 
     return 1;
   }
@@ -84,14 +141,12 @@ public class ManhuntCommand {
   private static int executeCompassDelay(CommandSourceStack source, Integer delay) {
     config.setDelay(delay);
     source.sendSuccess(() -> Component.translatable("manhunt.commands.delay", delay), true);
-
     return 1;
   }
 
   private static int setRunnersWinOnDragonDeath(CommandSourceStack source, boolean bool) {
     config.setRunnersWinOnDragonDeath(bool);
     source.sendSuccess(() -> Component.translatable("manhunt.commands.runnerswinset", bool), true);
-
     return 1;
   }
 
@@ -131,7 +186,6 @@ public class ManhuntCommand {
     }
 
     source.sendSuccess(() -> Component.translatable("manhunt.commands.freeze", time), true);
-
     return 1;
   }
 
@@ -141,7 +195,7 @@ public class ManhuntCommand {
     } else if (team.getName().equals("runners")) {
       config.setRunnersColor(color);
     } else {
-      source.sendSuccess(() -> Component.translatable("manhunt.commands.teamcolor.badteam", Component.translatable("manhunt.teams.hunters.name"), Component.translatable("manhunt.teams.runners.name")), true);
+      source.sendFailure(Component.translatable("manhunt.commands.teamcolor.badteam", Component.translatable("manhunt.teams.hunters.name"), Component.translatable("manhunt.teams.runners.name")));
       return -1;
     }
 
@@ -177,6 +231,7 @@ public class ManhuntCommand {
   private static int executeFriendlyFire(CommandSourceStack source, boolean bool) {
     Collection<String> teams = source.getAllTeams();
     Scoreboard scoreboard = source.getServer().getScoreboard();
+
     if(teams.contains("hunters"))
       scoreboard.getPlayerTeam("hunters").setAllowFriendlyFire(bool);
     if(teams.contains("runners"))
