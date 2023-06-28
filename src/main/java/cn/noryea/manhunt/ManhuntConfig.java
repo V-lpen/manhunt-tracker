@@ -23,7 +23,6 @@ public class ManhuntConfig {
   private int runnersLimit = -1;
 
   private int delay = 0;
-  private boolean runnersWinOnDragonDeath = true;
 
   private boolean showTitle = true;
   private boolean showRunnerDimension = true;
@@ -42,10 +41,6 @@ public class ManhuntConfig {
 
   public int getDelay() {
     return delay;
-  }
-
-  public boolean isRunnersWinOnDragonDeath() {
-    return runnersWinOnDragonDeath;
   }
 
   public boolean isShowTitle() {
@@ -90,11 +85,6 @@ public class ManhuntConfig {
     save();
   }
 
-  public void setRunnersWinOnDragonDeath(boolean bool) {
-    runnersWinOnDragonDeath = bool;
-    save();
-  }
-
   public void setShowTitle(boolean bool) {
     showTitle = bool;
     save();
@@ -136,7 +126,6 @@ public class ManhuntConfig {
       if ((je = jo.get("huntersLimit")) != null) huntersLimit = je.getAsInt();
       if ((je = jo.get("runnersLimit")) != null) runnersLimit = je.getAsInt();
       if ((je = jo.get("compassDelay")) != null) delay = je.getAsInt();
-      if ((je = jo.get("runnersWinOnDragonDeath")) != null) runnersWinOnDragonDeath = je.getAsBoolean();
       if ((je = jo.get("showTitle")) != null) showTitle = je.getAsBoolean();
       if ((je = jo.get("showRunnerDimension")) != null) showRunnerDimension = je.getAsBoolean();
 
@@ -162,7 +151,6 @@ public class ManhuntConfig {
       jo.add("huntersLimit", new JsonPrimitive(huntersLimit));
       jo.add("runnersLimit", new JsonPrimitive(runnersLimit));
       jo.add("compassDelay", new JsonPrimitive(delay));
-      jo.add("runnersWinOnDragonDeath", new JsonPrimitive(runnersWinOnDragonDeath));
       jo.add("showTitle", new JsonPrimitive(showTitle));
       jo.add("showRunnerDimension", new JsonPrimitive(showRunnerDimension));
       jo.add("automaticCompassUpdate", new JsonPrimitive(automaticCompassUpdate));

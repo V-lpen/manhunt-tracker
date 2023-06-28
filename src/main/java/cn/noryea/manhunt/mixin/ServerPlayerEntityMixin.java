@@ -127,24 +127,6 @@ public abstract class ServerPlayerEntityMixin extends Player {
 
   }
 
-  @Inject(method = "die", at = @At("HEAD"))
-  public void onDeath(DamageSource source, CallbackInfo ci) {
-    Scoreboard scoreboard = server.getScoreboard();
-
-    if (this.getTeam() != null) {
-      if (this.getTeam().isAlliedTo(scoreboard.getPlayerTeam("runners"))) {
-
-        setGameMode(GameType.SPECTATOR);
-        scoreboard.removePlayerFromTeam(this.getName().getString());
-
-        if (server.getScoreboard().getPlayerTeam("runners").getPlayers().isEmpty()) {
-          server.getCommands().performPrefixedCommand(this.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a subtitle {\"translate\":\"manhunt.win.hunters.subtitle\",\"color\":\"white\"}");
-          server.getCommands().performPrefixedCommand(this.createCommandSourceStack().withSuppressedOutput().withPermission(2), "title @a title {\"translate\":\"manhunt.win.hunters.title\",\"color\":\"white\"}"); //
-        }
-      }
-    }
-  }
-
   private void showInfo(CompoundTag info) {
     String dim = info.getString("Dimension");
     String dimension = "";

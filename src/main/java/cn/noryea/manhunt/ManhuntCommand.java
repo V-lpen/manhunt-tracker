@@ -57,9 +57,6 @@ public class ManhuntCommand {
       .then(Commands.literal("automaticCompassUpdateDelay").requires((src) -> src.hasPermission(2))
         .then(Commands.argument("seconds", IntegerArgumentType.integer(1, 120))
           .executes((ctx) -> executeSetAutomaticCompassUpdateDelay(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "seconds")))))
-      .then(Commands.literal("runnersWinOnDragonDeath").requires((src) -> src.hasPermission(2))
-        .then(Commands.argument("boolean", BoolArgumentType.bool())
-          .executes((ctx) -> setRunnersWinOnDragonDeath(ctx.getSource(), BoolArgumentType.getBool(ctx, "boolean")))))
       .then(Commands.literal("setColor").requires((src) -> src.hasPermission(2))
         .then(Commands.argument("team", TeamArgument.team())
           .then(Commands.argument("color", ColorArgument.color())
@@ -151,12 +148,6 @@ public class ManhuntCommand {
   private static int executeCompassDelay(CommandSourceStack source, Integer delay) {
     config.setDelay(delay);
     source.sendSuccess(() -> Component.translatable("manhunt.commands.delay", delay), true);
-    return 1;
-  }
-
-  private static int setRunnersWinOnDragonDeath(CommandSourceStack source, boolean bool) {
-    config.setRunnersWinOnDragonDeath(bool);
-    source.sendSuccess(() -> Component.translatable("manhunt.commands.runnerswinset", bool), true);
     return 1;
   }
 
